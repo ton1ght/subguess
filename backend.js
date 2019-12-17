@@ -5,66 +5,66 @@ var hints = 3
 var lives = 10
 
 var postCount = 0;
-var urls = new Object();
-var descriptions = new Object();
-var titles = new Object();
-var fallback_urls = new Object();
-var subreddits = new Object();
+var redditData = [];
 
 function getPost() {
-        hint = 0;
+    hint = 0;
 
-        document.getElementById("form").reset();
-        $("#placeholder").html("");
-        $("#title").html("");
-        $("#description").html("");
-        $("#link").html("");
 
-        index = Math.floor(Math.random()*postCount)
+    document.getElementById("form").reset();
+    $("#placeholder").html("");
+    $("#title").html("");
+    $("#description").html("");
+    $("#link").html("");
 
-        document.getElementById("postCount").innerHTML = postCount
-        document.getElementById("hints").innerHTML = hints
-        document.getElementById("lives").innerHTML = lives
-        document.getElementById("points").innerHTML = points
-        document.getElementById("title").innerHTML = titles[index]
+    index = Math.floor(Math.random()*postCount)
 
-        if(descriptions[index] != "" && !descriptions[index].includes("https")){
-            document.getElementById("description").innerHTML = descriptions[index]
-        }
+    document.getElementById("postCount").innerHTML = postCount
+    document.getElementById("hints").innerHTML = hints
+    document.getElementById("lives").innerHTML = lives
+    document.getElementById("points").innerHTML = points
+    document.getElementById("title").innerHTML = redditData[index].title;
 
-        if (urls[index].includes("i.redd.it") || urls[index].includes("gyfcat")){
-            var x = document.createElement("img");
-            x.setAttribute("src",urls[index]);
-            x.setAttribute("onerror","this.style.display='none'");
-            document.getElementById("placeholder").appendChild(x);
-        }else if(urls[index].includes("v.redd.it")){
-            var video = document.createElement('video');
-            video.src = fallback_urls[index];
-            video.type = "video/mp4"
-            video.autoplay = true;
-            video.loop = true;
-            document.getElementById("placeholder").appendChild(video);
-        }else if(!urls[index].includes("reddit")){
-            var hyperlink = document.createElement('a');
-            hyperlink.href=urls[index]
-            hyperlink.innerText = urls[index]
-            document.getElementById("link").appendChild(hyperlink);
-        }
+    if(redditData[index].desc != "" && !redditData[index].desc.includes("https")){
+        document.getElementById("description").innerHTML = redditData[index].desc;
+    }
+
+    if (redditData[index].url.includes("i.redd.it") || redditData[index].url.includes("gfycat") || redditData[index].url.includes("imgur")){
+        var x = document.createElement("img");
+        x.setAttribute("src", redditData[index].url);
+        x.setAttribute("onerror","this.style.display='none'");
+        document.getElementById("placeholder").appendChild(x);
+    } else if(redditData[index].url.includes("v.redd.it")){
+        var video = document.createElement('video');
+        video.src = redditData[index].vid;
+        video.type = "video/mp4"
+        video.autoplay = true;
+        video.loop = true;
+        document.getElementById("placeholder").appendChild(video);
+    } else if(!redditData[index].url.includes("reddit")){
+        var hyperlink = document.createElement('a');
+        hyperlink.href = redditData[index].url
+        hyperlink.innerText = redditData[index].url
+        document.getElementById("link").appendChild(hyperlink);
+    }
 }
 
-function highlight(obj,color){
-   var orig = obj.style.background;
-   obj.style.background = color;
-   setTimeout(function(){
-        obj.style.background = orig;
-   }, 500);
+function highlight(obj, color){
+    var orig = obj.style.background;
+    obj.style.background = color;
+    setTimeout(
+        function(){
+            obj.style.background = orig;
+        },
+        500
+    );
 }
 
 function skip(){
-    lives-=1
+    lives -= 1
     if (lives == 0){
         gameLost();
-    }else{
+    } else {
         getPost();
     }
 }
@@ -80,11 +80,13 @@ function gameLost(){
 function checkInput(){
     userInput = document.getElementById("answer").value;
     document.getElementById("form").reset();
-    if (userInput.toUpperCase() == subreddits[index].toUpperCase()){
+    if (userInput.toUpperCase() == redditData[index].sub.toUpperCase()){
         highlight(document.getElementById("answer"), '#0f0');
         if(hint == 0){
             points = points + 1
         }
+        redditData.splice(index, 1)
+        postCount--
         getPost();
     }
     else{
@@ -100,7 +102,7 @@ function checkInput(){
 function showSolution(){
     hint = 1
     if (hints > 0){
-        document.getElementById("answer").value = subreddits[index]
+        document.getElementById("answer").value = redditData[index].sub
         hints = hints - 1;
         document.getElementById("hints").innerHTML = hints
     }
@@ -108,32 +110,85 @@ function showSolution(){
 }
 
 function getSuggestions(){
-    for (var i = 0, len = urls.length; i < len; i++) {
+    let subList = []
+    for (var i = 0, len = redditData.length; i < len; i++) {
+        subList.push(redditData[i].sub)
+    }
+
+    sub_list = new Set(subList)
+
+    for (var i = 0, len = subList.length; i < len; i++) {
        var option = document.createElement('option');
-       option.value =urls[i];
+       option.value = subList[i];
        document.getElementById("suggestions").appendChild(option);
     }
 }
 
-function getFrontpage(){
-    $.getJSON('https://reddit.com/.json?callback=foo').then(function(data) {
-        for (var i = 0, len = data.data.children.length; i < len; i++) {
-            postCount+=1;
-            urls[i] = data.data.children[i].data.url;
-            subreddits[i] = data.data.children[i].data.subreddit;
-            titles[i] = data.data.children[i].data.title;
-            descriptions[i] = data.data.children[i].data.selftext;
-            try{
-                fallback_urls[i] = data.data.children[i].data.media.reddit_video.fallback_url
-            }catch(err){
-                fallback_urls[i] = ""
+var getJSON = function(url, callback) {
+    var xhr = new XMLHttpRequest();
+    xhr.open('GET', url, true);
+    xhr.responseType = 'json';
+    xhr.onload = function() {
+        var status = xhr.status;
+        if (status === 200) {
+            callback(null, xhr.response);
+        } else {
+            callback(status, xhr.response);
+        }
+    };
+    xhr.send();
+};
+
+var next = function(after, j, _callback) {
+    if (j == 0) {
+        _callback();
+        return 0;
+    }
+
+    getJSON('https://www.reddit.com/.json?callback=foo&after=' + after, function(_, data) {
+        for (var i = 0; i < 25; i++) {
+            postCount += 1;
+            try {
+                redditData.push(
+                    {
+                        url : data.data.children[i].data.url,
+                        sub : data.data.children[i].data.subreddit,
+                        title : data.data.children[i].data.title,
+                        desc : data.data.children[i].data.selftext,
+                        vid : data.data.children[i].data.media.reddit_video.fallback_url
+                    }
+                );
+            } catch(err) {
+                redditData.push(
+                    {
+                        url : data.data.children[i].data.url,
+                        sub : data.data.children[i].data.subreddit,
+                        title : data.data.children[i].data.title,
+                        desc : data.data.children[i].data.selftext,
+                        vid : ''
+                    }
+                );
             }
         }
-  });
+
+        next(data.data.after, j-1, _callback);
+    });
+}
+
+var finishedCount = 4;
+function getFrontpage(_callback){
+    next('', 4, _callback);
+}
+
+function initializeGame() {
+    getFrontpage(
+        function () {
+            getPost();
+            getSuggestions();
+        }
+    );
 }
 
 document.addEventListener("DOMContentLoaded", function(event) {
-    getFrontpage();
-    getSuggestions();
-    getPost();
+    initializeGame();
 });
