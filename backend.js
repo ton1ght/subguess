@@ -28,9 +28,9 @@ function getPost() {
     if(redditData[index].desc != "" && !redditData[index].desc.includes("https")){
         document.getElementById("description").innerHTML = redditData[index].desc;
     }
-
+// https://i.imgur.com/hqgwqFO.gifv
     // this if covers images
-    if (redditData[index].url.includes("i.redd.it") || redditData[index].url.includes("gfycat") || redditData[index].url.includes("imgur")){
+    if (redditData[index].url.includes("i.redd.it") || redditData[index].url.includes("gfycat") || (redditData[index].url.includes("imgur") && !redditData[index].url.includes("gifv"))){
         var x = document.createElement("img");
         x.setAttribute("src", redditData[index].url);
         x.setAttribute("onerror","this.style.display='none'");
@@ -41,7 +41,20 @@ function getPost() {
         video.src = redditData[index].vid;
         video.type = "video/mp4"
         video.autoplay = true;
+        video.muted = true;
         video.loop = true;
+        document.getElementById("placeholder").appendChild(video);
+    } else if (redditData[index].url.includes(".gifv")) {
+        console.log(redditData[index].url);
+        newString = redditData[index].url.replace(".gifv", ".mp4");
+        console.log(newString);
+        var video = document.createElement('video');
+        video.src = newString;
+        video.type = "video/mp4"
+        video.autoplay = true;
+        video.loop = true;
+        video.muted = true;
+        video.controls = true;
         document.getElementById("placeholder").appendChild(video);
     // this if covers text
     } else if(!redditData[index].url.includes("reddit")){
