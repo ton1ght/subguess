@@ -134,10 +134,10 @@ function showSolution(){
 function getSuggestions(){
     let subList = []
     for (var i = 0, len = redditData.length; i < len; i++) {
-        subList.push(redditData[i].sub)
+        if(!subList.includes(redditData[i].sub)) {
+            subList.push(redditData[i].sub)
+        }
     }
-
-    sub_list = new Set(subList)
 
     for (var i = 0, len = subList.length; i < len; i++) {
        var option = document.createElement('option');
