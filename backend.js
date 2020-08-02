@@ -29,11 +29,13 @@ function getPost() {
         document.getElementById("description").innerHTML = redditData[index].desc;
     }
 
+    // this if covers images
     if (redditData[index].url.includes("i.redd.it") || redditData[index].url.includes("gfycat") || redditData[index].url.includes("imgur")){
         var x = document.createElement("img");
         x.setAttribute("src", redditData[index].url);
         x.setAttribute("onerror","this.style.display='none'");
         document.getElementById("placeholder").appendChild(x);
+    // this if covers vidoes
     } else if(redditData[index].url.includes("v.redd.it")){
         var video = document.createElement('video');
         video.src = redditData[index].vid;
@@ -41,6 +43,7 @@ function getPost() {
         video.autoplay = true;
         video.loop = true;
         document.getElementById("placeholder").appendChild(video);
+    // this if covers text
     } else if(!redditData[index].url.includes("reddit")){
         var hyperlink = document.createElement('a');
         hyperlink.href = redditData[index].url
@@ -61,12 +64,14 @@ function highlight(obj, color){
 }
 
 function skip(){
-    lives -= 1
-    if (lives == 0){
-        gameLost();
-    } else {
+    if (!checkInput()) {
+        lives = lives - 1;
+        if (lives == 0){
+            gameLost();
+        }
         getPost();
     }
+    getPost();
 }
 
 function gameLost(){
@@ -80,17 +85,24 @@ function gameLost(){
 function checkInput(){
     userInput = document.getElementById("answer").value;
     document.getElementById("form").reset();
-    if (userInput.toUpperCase() == redditData[index].sub.toUpperCase()){
+    if (userInput.toUpperCase() == redditData[index].sub.toUpperCase()) {
         highlight(document.getElementById("answer"), '#0f0');
+        return true;
+    } else {
+        highlight(document.getElementById("answer"), '#f00');
+        return false;
+    }
+}
+
+function enter() {
+    if (checkInput()) {
         if(hint == 0){
             points = points + 1
         }
         redditData.splice(index, 1)
         postCount--
         getPost();
-    }
-    else{
-        highlight(document.getElementById("answer"), '#f00');
+    } else {
         lives = lives - 1;
         if (lives == 0){
             gameLost();
