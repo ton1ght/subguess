@@ -10,3 +10,5 @@ You can test it [here](https://ton1ght.github.io/subguess/). Please note that it
 * UI improvements
 * highscore (?)
 * improve picture sizing (add max_height/max_width)
+* add support for youtube videos
+* (add support for articles)
