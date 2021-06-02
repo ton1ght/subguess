@@ -10,7 +10,6 @@ var redditData = [];
 function getPost() {
     hint = 0;
 
-
     document.getElementById("form").reset();
     $("#placeholder").html("");
     $("#title").html("");
@@ -146,69 +145,50 @@ function getSuggestions(){
     }
 }
 
-var getJSON = function(url, callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.responseType = 'json';
-    xhr.onload = function() {
-        var status = xhr.status;
-        if (status === 200) {
-            callback(null, xhr.response);
-        } else {
-            callback(status, xhr.response);
-        }
-    };
-    xhr.send();
-};
-
-var next = function(after, j, _callback) {
-    if (j == 0) {
-        _callback();
-        return 0;
-    }
-
-    getJSON('https://www.reddit.com/.json?callback=foo&after=' + after, function(_, data) {
-        for (var i = 0; i < 25; i++) {
-            postCount += 1;
-            try {
-                redditData.push(
-                    {
-                        url : data.data.children[i].data.url,
-                        sub : data.data.children[i].data.subreddit,
-                        title : data.data.children[i].data.title,
-                        desc : data.data.children[i].data.selftext,
-                        vid : data.data.children[i].data.media.reddit_video.fallback_url
+async function getFrontpage(pages_to_load) {
+    let after = '';
+    for (let j = 0; j < pages_to_load; j++) {
+        await fetch('https://www.reddit.com/.json?callback=foo&after=' + after)
+            .then(response => response.json())
+            .then(function (json) {
+                for (let i = 0; i < 25; i++) {
+                    postCount += 1;
+                    try {
+                        redditData.push(
+                            {
+                                url : json.data.children[i].data.url,
+                                sub : json.data.children[i].data.subreddit,
+                                title : json.data.children[i].data.title,
+                                desc : json.data.children[i].data.selftext,
+                                vid : json.data.children[i].data.media.reddit_video.fallback_url
+                            }
+                        );
+                    } catch(err) {
+                        redditData.push(
+                            {
+                                url : json.data.children[i].data.url,
+                                sub : json.data.children[i].data.subreddit,
+                                title : json.data.children[i].data.title,
+                                desc : json.data.children[i].data.selftext,
+                                vid : ''
+                            }
+                        );
                     }
-                );
-            } catch(err) {
-                redditData.push(
-                    {
-                        url : data.data.children[i].data.url,
-                        sub : data.data.children[i].data.subreddit,
-                        title : data.data.children[i].data.title,
-                        desc : data.data.children[i].data.selftext,
-                        vid : ''
-                    }
-                );
+                }
+
+                after = json.data.after;
             }
-        }
-
-        next(data.data.after, j-1, _callback);
-    });
-}
-
-var finishedCount = 4;
-function getFrontpage(_callback){
-    next('', 4, _callback);
+        );
+    }
 }
 
 function initializeGame() {
-    getFrontpage(
-        function () {
+    getFrontpage(4)
+        .then(function () {
             getPost();
             getSuggestions();
-        }
-    );
+        })
+        .catch(alert);
 }
 
 document.addEventListener("DOMContentLoaded", function(event) {
