@@ -146,28 +146,22 @@ function getSuggestions(){
     }
 }
 
-var getJSON = function(url, callback) {
-    var xhr = new XMLHttpRequest();
-    xhr.open('GET', url, true);
-    xhr.responseType = 'json';
-    xhr.onload = function() {
-        var status = xhr.status;
-        if (status === 200) {
-            callback(null, xhr.response);
-        } else {
-            callback(status, xhr.response);
-        }
-    };
-    xhr.send();
+function getJSON(url, callback) {
+    fetch(url)
+        .catch(function (err) { alert(err); })
+        .then(response => response.json())
+        .then( function (result) {
+            callback(result);
+        });
 };
 
-var next = function(after, j, _callback) {
+function next(after, j, _callback) {
     if (j == 0) {
         _callback();
         return 0;
     }
 
-    getJSON('https://www.reddit.com/.json?callback=foo&after=' + after, function(_, data) {
+    getJSON('https://www.reddit.com/.json?callback=foo&after=' + after, function(data) {
         for (var i = 0; i < 25; i++) {
             postCount += 1;
             try {
