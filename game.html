@@ -79,15 +79,18 @@
                 </datalist>
             </form>
         </div>
-        <!-- <div class="inline"> -->
-        <!--     <button id="guess" class="w3-btn w3-black" onclick="checkInput()">Guess</button> --> 
-        <!-- </div> -->
+        <div class="inline">
+            <button id="show" class="w3-btn w3-black" onclick="enter()">Check</button> 
+        </div>
         <div class="inline">
             <button id="show" class="w3-btn w3-black" onclick="showSolution()">Hint</button> 
         </div>
         <div class="inline">
-            <button class="w3-btn w3-black" onclick="skip()">Next</button> 
+            <button class="w3-btn w3-black" onclick="skip()">Skip</button> 
         </div>
+    </div>
+    <div class="w3-container w3-center">
+        <p style="color:grey"><i>Press enter to check the input!</i></p>
     </div>
     <script src="./backend.js"></script>
 </body>

@@ -183,7 +183,7 @@ async function getFrontpage(pages_to_load) {
 }
 
 function initializeGame() {
-    getFrontpage(4)
+    getFrontpage(2)
         .then(function () {
             getPost();
             getSuggestions();
