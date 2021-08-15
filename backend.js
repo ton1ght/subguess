@@ -2,7 +2,7 @@ var index
 var points = 0
 var hint = 0
 var hints = 3
-var lives = 10
+var lifes = 10
 
 var postCount = 0;
 var redditData = [];
@@ -20,22 +20,21 @@ function getPost() {
 
     document.getElementById("postCount").innerHTML = postCount
     document.getElementById("hints").innerHTML = hints
-    document.getElementById("lives").innerHTML = lives
+    document.getElementById("lifes").innerHTML = lifes
     document.getElementById("points").innerHTML = points
     document.getElementById("title").innerHTML = redditData[index].title;
 
-    if(redditData[index].desc != "" && !redditData[index].desc.includes("https")){
+    if (redditData[index].desc != "" && !redditData[index].desc.includes("https")) {
         document.getElementById("description").innerHTML = redditData[index].desc;
     }
-// https://i.imgur.com/hqgwqFO.gifv
-    // this if covers images
-    if (redditData[index].url.includes("i.redd.it") || redditData[index].url.includes("gfycat") || (redditData[index].url.includes("imgur") && !redditData[index].url.includes("gifv"))){
+    // images
+    if (redditData[index].url.includes("i.redd.it") || redditData[index].url.includes("gfycat") || (redditData[index].url.includes("imgur") && !redditData[index].url.includes("gifv"))) {
         var x = document.createElement("img");
         x.setAttribute("src", redditData[index].url);
         x.setAttribute("onerror","this.style.display='none'");
         document.getElementById("placeholder").appendChild(x);
-    // this if covers vidoes
-    } else if(redditData[index].url.includes("v.redd.it")){
+    // videos
+    } else if (redditData[index].url.includes("v.redd.it")) {
         var video = document.createElement('video');
         video.src = redditData[index].vid;
         video.type = "video/mp4"
@@ -43,6 +42,7 @@ function getPost() {
         video.muted = true;
         video.loop = true;
         document.getElementById("placeholder").appendChild(video);
+    // gifs
     } else if (redditData[index].url.includes(".gifv")) {
         newString = redditData[index].url.replace(".gifv", ".mp4");
         var video = document.createElement('video');
@@ -52,8 +52,8 @@ function getPost() {
         video.loop = true;
         video.muted = true;
         document.getElementById("placeholder").appendChild(video);
-    // this if covers text
-    } else if(!redditData[index].url.includes("reddit")){
+    // text
+    } else if(!redditData[index].url.includes("reddit")) {
         var hyperlink = document.createElement('a');
         hyperlink.href = redditData[index].url
         hyperlink.innerText = redditData[index].url
@@ -61,29 +61,29 @@ function getPost() {
     }
 }
 
-function highlight(obj, color){
+function highlight(obj, color) {
     var orig = obj.style.background;
     obj.style.background = color;
     setTimeout(
-        function(){
+        function() {
             obj.style.background = orig;
         },
-        500
+        1000
     );
 }
 
-function skip(){
-    if (!checkInput()) {
-        lives = lives - 1;
-        if (lives == 0){
-            gameLost();
+function skip() {
+    if (checkInput()) {
+        if (!hint) {
+            points = points + 1
         }
-        getPost();
+    } else {
+        decreaseLifes()
     }
     getPost();
 }
 
-function gameLost(){
+function gameLost() {
     window.location.replace('./end.html')
     window.addEventListener('load', function () {
         alert(points)
@@ -91,10 +91,10 @@ function gameLost(){
     })
 }
 
-function checkInput(){
+function checkInput() {
     userInput = document.getElementById("answer").value;
     document.getElementById("form").reset();
-    if (userInput.toUpperCase() == redditData[index].sub.toUpperCase()) {
+    if (userInput.toLowerCase() == redditData[index].sub.toLowerCase()) {
         highlight(document.getElementById("answer"), '#0f0');
         return true;
     } else {
@@ -105,35 +105,32 @@ function checkInput(){
 
 function enter() {
     if (checkInput()) {
-        if(hint == 0){
+        if (!hint) {
             points = points + 1
         }
         redditData.splice(index, 1)
-        postCount--
+        postCount = postCount - 1
         getPost();
     } else {
-        lives = lives - 1;
-        if (lives == 0){
-            gameLost();
-        }
+        decreaseLifes()
     }
-    document.getElementById("lives").innerHTML = lives
+    document.getElementById("lifes").innerHTML = lifes
 }
 
-function showSolution(){
-    hint = 1
+function showSolution() {
     if (hints > 0){
-        document.getElementById("answer").value = redditData[index].sub
+        hint = 1
         hints = hints - 1;
+        document.getElementById("answer").value = redditData[index].sub
         document.getElementById("hints").innerHTML = hints
     }
     return 1;
 }
 
-function getSuggestions(){
+function getSuggestions() {
     let subList = []
     for (var i = 0, len = redditData.length; i < len; i++) {
-        if(!subList.includes(redditData[i].sub)) {
+        if (!subList.includes(redditData[i].sub)) {
             subList.push(redditData[i].sub)
         }
     }
@@ -142,6 +139,13 @@ function getSuggestions(){
        var option = document.createElement('option');
        option.value = subList[i];
        document.getElementById("suggestions").appendChild(option);
+    }
+}
+
+function decreaseLifes() {
+    lifes = lifes - 1
+    if (lifes <= 0) {
+        gameLost();
     }
 }
 
@@ -156,21 +160,21 @@ async function getFrontpage(pages_to_load) {
                     try {
                         redditData.push(
                             {
-                                url : json.data.children[i].data.url,
-                                sub : json.data.children[i].data.subreddit,
+                                url   : json.data.children[i].data.url,
+                                sub   : json.data.children[i].data.subreddit,
                                 title : json.data.children[i].data.title,
-                                desc : json.data.children[i].data.selftext,
-                                vid : json.data.children[i].data.media.reddit_video.fallback_url
+                                desc  : json.data.children[i].data.selftext,
+                                vid   : json.data.children[i].data.media.reddit_video.fallback_url
                             }
                         );
                     } catch(err) {
                         redditData.push(
                             {
-                                url : json.data.children[i].data.url,
-                                sub : json.data.children[i].data.subreddit,
+                                url   : json.data.children[i].data.url,
+                                sub   : json.data.children[i].data.subreddit,
                                 title : json.data.children[i].data.title,
-                                desc : json.data.children[i].data.selftext,
-                                vid : ''
+                                desc  : json.data.children[i].data.selftext,
+                                vid   : ''
                             }
                         );
                     }
@@ -183,7 +187,7 @@ async function getFrontpage(pages_to_load) {
 }
 
 function initializeGame() {
-    getFrontpage(2)
+    getFrontpage(4)
         .then(function () {
             getPost();
             getSuggestions();
