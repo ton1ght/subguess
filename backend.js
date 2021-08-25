@@ -1,8 +1,8 @@
-var index;
-var points = 0;
-var hint = 0;
-var hints = 3;
-var lifes = 10;
+var index
+var points = 0
+var hint = 0
+var skips = 3
+var lifes = 5
 
 var postCount = 0;
 var redditData = [];
@@ -18,11 +18,11 @@ function getPost(debug_index = null) {
 
     index = (debug_index === null) ? Math.floor(Math.random()*postCount) : debug_index;
 
-    document.getElementById("postCount").innerHTML = postCount;
-    document.getElementById("hints").innerHTML = hints;
-    document.getElementById("lifes").innerHTML = lifes;
-    document.getElementById("points").innerHTML = points;
-    document.getElementById("title").innerHTML = redditData[index].title;
+    document.getElementById("postCount").innerHTML = postCount
+    document.getElementById("lifes").innerHTML = lifes
+    document.getElementById("points").innerHTML = points
+    document.getElementById("skips").innerHTML = skips
+    document.getElementById("title").innerHTML = redditData[index].title
 
     if (redditData[index].desc != "" && !redditData[index].desc.includes("https")) {
         document.getElementById("description").innerHTML = redditData[index].desc;
@@ -75,14 +75,13 @@ function highlight(obj, color) {
 }
 
 function skip() {
-    if (checkInput()) {
-        if (!hint) {
-            points = points + 1;
+    if (skips > 0) {
+        skips = skips - 1
+        getPost()
+        if (skips <= 0) {
+            document.getElementById("button_skip").disabled = true;
         }
-    } else {
-        decreaseLifes();
     }
-    getPost();
 }
 
 function gameLost() {
@@ -117,16 +116,6 @@ function enter() {
         decreaseLifes();
     }
     document.getElementById("lifes").innerHTML = lifes;
-}
-
-function showSolution() {
-    if (hints > 0){
-        hint = 1;
-        hints = hints - 1;
-        document.getElementById("answer").value = redditData[index].sub;
-        document.getElementById("hints").innerHTML = hints;
-    }
-    return 1;
 }
 
 function getSuggestions() {
