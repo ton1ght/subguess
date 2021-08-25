@@ -62,11 +62,26 @@ function getPost(debug_index = null) {
         video.muted = true;
         document.getElementById("placeholder").appendChild(video);
     // text
+    } else if (redditData[index].url.includes("twitter")) {
+        link = "https://twitframe.com/show?url=" + encodeURI(redditData[index].url);
+        var hyperlink = document.createElement('a');
+        hyperlink.href = link;
+        hyperlink.innerText = redditData[index].url;
+        document.getElementById("link").appendChild(hyperlink);
+
+        let ifrm = document.createElement('iframe');
+        ifrm.setAttribute("src", link);
+        document.getElementById("placeholder").appendChild(ifrm);
+
     } else if(!redditData[index].url.includes("reddit")) {
         var hyperlink = document.createElement('a');
         hyperlink.href = redditData[index].url;
         hyperlink.innerText = redditData[index].url;
         document.getElementById("link").appendChild(hyperlink);
+
+        let ifrm = document.createElement('iframe');
+        ifrm.setAttribute("src", redditData[index].url);
+        document.getElementById("placeholder").appendChild(ifrm);
     }
 
     return index;
