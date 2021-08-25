@@ -164,10 +164,17 @@ function decreaseLifes() {
     }
 }
 
-async function getFrontpage(pages_to_load) {
+async function getFrontpage(pages_to_load, ordering = "") {
     let after = '';
+
+    if (!["hot", "new", "top", "rising"].includes(ordering)) {
+        ordering = "";
+    } else {
+        ordering += "/";
+    }
+
     for (let j = 0; j < pages_to_load; j++) {
-        await fetch('https://www.reddit.com/.json?callback=foo&after=' + after)
+        await fetch('https://www.reddit.com/' + ordering + '.json?callback=foo&after=' + after)
             .then(response => response.json())
             .then(function (json) {
                 for (let i = 0; i < 25; i++) {
