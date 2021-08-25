@@ -18,21 +18,30 @@ function getPost(debug_index = null) {
 
     index = (debug_index === null) ? Math.floor(Math.random()*postCount) : debug_index;
 
-    document.getElementById("postCount").innerHTML = postCount
-    document.getElementById("lifes").innerHTML = lifes
-    document.getElementById("points").innerHTML = points
-    document.getElementById("skips").innerHTML = skips
-    document.getElementById("title").innerHTML = redditData[index].title
+    document.getElementById("postCount").innerHTML = postCount;
+    document.getElementById("lifes").innerHTML = lifes;
+    document.getElementById("points").innerHTML = points;
+    document.getElementById("skips").innerHTML = skips;
+    document.getElementById("title").innerHTML = redditData[index].title;
 
     if (redditData[index].desc != "" && !redditData[index].desc.includes("https")) {
         document.getElementById("description").innerHTML = redditData[index].desc;
     }
     // images
-    if (redditData[index].url.includes("i.redd.it") || redditData[index].url.includes("gfycat") || (redditData[index].url.includes("imgur") && !redditData[index].url.includes("gifv"))) {
+    if (redditData[index].url.includes("i.redd.it") || (redditData[index].url.includes("imgur") && !redditData[index].url.includes("gifv"))) {
         var x = document.createElement("img");
         x.setAttribute("src", redditData[index].url);
         x.setAttribute("onerror","this.style.display='none'");
         document.getElementById("placeholder").appendChild(x);
+    // gfycat
+    } else if (redditData[index].url.includes("gfycat")) {
+        var video = document.createElement('video');
+        video.src = redditData[index].vid + ".gif";
+        video.type = "video/mp4";
+        video.autoplay = true;
+        video.muted = true;
+        video.loop = true;
+        document.getElementById("placeholder").appendChild(video);
     // videos
     } else if (redditData[index].url.includes("v.redd.it")) {
         var video = document.createElement('video');
