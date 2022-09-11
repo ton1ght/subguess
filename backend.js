@@ -1,11 +1,13 @@
-var index
-var points = 0
-var hint = 0
-var skips = 3
-var lifes = 5
+var points = 0;
+var lifes = 3;
 
 var postCount = 0;
 var redditData = [];
+var element = {};
+
+var highscore = 0;
+
+var streak = 0;
 
 function contains_all(str, search) {
     ret = 0;
@@ -23,26 +25,23 @@ function contains_one(str, search) {
 }
 
 function getPost(debug_index = null) {
-    hint = 0;
-
     document.getElementById("form").reset();
-    $("#placeholder").html("");
-    $("#title").html("");
-    $("#description").html("");
-    $("#link").html("");
 
-    index = (debug_index === null) ? Math.floor(Math.random()*postCount) : debug_index;
+    document.getElementById("placeholder").innerHTML = "";
+    document.getElementById("title").innerHTML = "";
+    document.getElementById("description").innerHTML = "";
+    document.getElementById("link").innerHTML = "";
 
-    document.getElementById("postCount").innerHTML = postCount;
-    document.getElementById("lifes").innerHTML = lifes;
-    document.getElementById("points").innerHTML = points;
-    document.getElementById("skips").innerHTML = skips;
-    document.getElementById("title").innerHTML = redditData[index].title;
+    element = redditData.pop()
 
-    let element = redditData[index];
+    // document.getElementById("postCount").textContent = postCount;
+    document.getElementById("points").textContent = points;
+
+    document.getElementById("streak").textContent = streak;
+    document.getElementById("title").textContent = element.title;
 
     if (element.desc != "") {
-        document.getElementById("description").innerHTML = element.desc;
+        document.getElementById("description").textContent = element.desc;
     }
 
     if (contains_one(element.vid, ["v.redd.it", ".gifv"])) {
@@ -76,7 +75,7 @@ function getPost(debug_index = null) {
         document.getElementById("placeholder").appendChild(ifrm);
 
     } else if (element.url.includes("gfycat") || contains_all(element.url, ["gallery", "reddit"])) {
-        document.getElementById("placeholder").innerHTML = "We can not display the media at this time.";
+        document.getElementById("placeholder").textContent = "We can not display the media at this time.";
         var hyperlink = document.createElement('a');
         hyperlink.href = element.url;
         hyperlink.innerText = element.url;
@@ -91,93 +90,115 @@ function getPost(debug_index = null) {
         document.getElementById("link").appendChild(hyperlink);
 
     } else {
-        document.getElementById("description").innerHTML = "";
-        document.getElementById("placeholder").innerHTML = element.desc;
+        document.getElementById("description").textContent = "";
+        document.getElementById("placeholder").textContent = element.desc;
     }
 
-    return index;
+    document.getElementById("answer").disabled = false;
 }
 
-function highlight(obj, color) {
+async function highlight(obj, color) {
     var orig = obj.style.background;
     obj.style.background = color;
-    setTimeout(
+    return new Promise(resolve => setTimeout(
         function() {
             obj.style.background = orig;
+			document.querySelector("#answer").value = "";
+			resolve();
         },
-        1000,
-    );
+        600,
+    ));
 }
 
-function skip() {
-    if (skips > 0) {
-        skips = skips - 1
-        getPost()
-        if (skips <= 0) {
-            document.getElementById("button_skip").disabled = true;
-        }
-    }
-}
+async function enter() {
+	document.querySelector("#show").disabled = true;
+	document.getElementById("streak").style.background = "";
 
-function gameLost() {
-    window.location.replace('./end.html');
-    window.addEventListener('load', function () {
-        alert(points);
-        document.getElementById("score").innerHTML = points;
-    })
-}
-
-function checkInput() {
     userInput = document.getElementById("answer").value;
-    document.getElementById("form").reset();
-    if (userInput.toLowerCase() == redditData[index].sub.toLowerCase()) {
-        highlight(document.getElementById("answer"), '#0f0');
-        return true;
-    } else {
-        highlight(document.getElementById("answer"), '#f00');
-        return false;
+
+	document.querySelector("#answer").value = element.sub;
+	document.querySelector("#answer").disabled = true;
+
+    if (userInput.toLowerCase() == element.sub.toLowerCase()) {
+		await highlight(document.body, "#0f0");
+        points++;
+		streak++;
+		if (streak % 5 === 0 && streak > 0) {
+			document.getElementById("streak").style.background = "#0f0";
+
+			lifes++;
+			let life_div = document.createElement("div");
+			life_div.innerHTML = '<div class="heart-shape"></div>';
+			life_div.className = "inline pad";
+			document.getElementById("lifes").appendChild(life_div);
+		}
+	} else {
+		await highlight(document.body, "#f00");
+		streak = 0;
+
+		document.getElementById("lifes").children[0].remove();
+
+		if (lifes === 1) {
+			nh = ""
+			if (points > highscore) {
+				highscore = points;
+				nh = " \nNew Highscore!";
+			}
+
+			alert("The game is lost. You earned " + points + " points." + nh);
+
+			lifes = 3;
+			const life_div = document.createElement("div");
+			life_div.innerHTML = '<div class="heart-shape"></div>';
+			life_div.className = "inline pad";
+            const life_container = document.getElementById("lifes");
+			life_container.appendChild(life_div.cloneNode(true));
+			life_container.appendChild(life_div.cloneNode(true));
+			life_container.appendChild(life_div.cloneNode(true));
+
+			points = 0;
+			streak = 0;
+		} else {
+			lifes--;
+		}
+	}
+
+    document.getElementById("points").textContent = points;
+    document.getElementById("streak").textContent = streak;
+
+
+    updateSuggestions();
+	getPost();
+
+	document.querySelector("#show").disabled = false;
+	document.querySelector("#answer").disabled = false;
+
+	document.querySelector("#answer").focus();
+
+    if (redditData.length <= 25) {
+        getNextFrontpage(1);
     }
 }
 
-function enter() {
-    if (checkInput()) {
-        if (!hint) {
-            points = points + 1;
-        }
-        redditData.splice(index, 1)
-        postCount = postCount - 1;
-        getPost();
-    } else {
-        decreaseLifes();
-    }
-    document.getElementById("lifes").innerHTML = lifes;
-}
-
-function getSuggestions() {
-    let subList = [];
+function updateSuggestions() {
+    var subList = [];
     for (var i = 0, len = redditData.length; i < len; i++) {
         if (!subList.includes(redditData[i].sub)) {
             subList.push(redditData[i].sub);
         }
     }
 
-    for (var i = 0, len = subList.length; i < len; i++) {
-       var option = document.createElement('option');
-       option.value = subList[i];
-       document.getElementById("suggestions").appendChild(option);
+    document.querySelector("#suggestions").innerHTML = "";
+
+    for (const sub of subList) {
+        var option = document.createElement('option');
+        option.value = sub;
+        document.getElementById("suggestions").appendChild(option);
     }
 }
 
-function decreaseLifes() {
-    lifes = lifes - 1;
-    if (lifes <= 0) {
-        gameLost();
-    }
-}
-
-async function getFrontpage(pages_to_load, ordering = "") {
-    let after = '';
-
+var after = ''
+async function getNextFrontpage(pages_to_load, ordering = "") {
     if (!["hot", "new", "top", "rising"].includes(ordering)) {
         ordering = "";
     } else {
@@ -217,15 +238,27 @@ async function getFrontpage(pages_to_load, ordering = "") {
             }
         );
     }
+
+    redditData.sort(() => Math.random() - 0.5)
 }
 
+// TODO:
+// - Keep game state in local storage and continue from saved state
+// --> Start from top posts after certain time
+// - Keep better track of highscore
+
 function initializeGame() {
-    getFrontpage(4)
+    points = 0;
+    lifes = 3;
+	streak = 0;
+
+    getNextFrontpage(2)
         .then(function () {
+			updateSuggestions();
             getPost();
-            getSuggestions();
+			document.querySelector("#answer").focus();
         })
-        .catch(alert)
+        .catch(alert);
 }
 
 document.addEventListener("DOMContentLoaded", function(event) {

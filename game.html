@@ -5,7 +5,6 @@
 
 <head>
     <title>Subreddit guesser</title>
-    <script src="https://code.jquery.com/jquery-3.2.1.min.js"></script>
     <link rel="stylesheet" href="https://www.w3schools.com/w3css/4/w3.css">
 </head>
 
@@ -40,6 +39,43 @@
         min-height: 100%;
         min-width: 100%;
     }
+
+	.heart-shape{
+	    position: relative;
+	    width: 10px;
+	    height: 10px;
+	    -webkit-transform: rotate(45deg);
+	    -moz-transform: rotate(45deg);
+	    -ms-transform: rotate(45deg);
+	    -o-transform: rotate(45deg);
+	    transform: rotate(45deg);
+	    background-color: black;
+	}
+	.heart-shape:before,
+	.heart-shape:after{
+	    position: absolute;
+	    width: 10px;
+	    height: 10px;
+	    content: '';
+	    -webkit-border-radius: 50%;
+	    -moz-border-radius: 50%;
+	    -o-border-radius: 50%;
+	    border-radius: 50%;
+	    background-color: black;
+	}
+	.heart-shape:before{
+	    bottom: 0px;
+	    left: -5px;
+	}
+	.heart-shape:after{
+	    top: -5px;
+	    right: 0px;
+	}
+
+	.pad {
+		padding-right: 10px;
+	}
+
 </style>
 
 <body>
@@ -48,15 +84,8 @@
     <div class="w3-container w3-center w3-xxxlarge w3-black">
         Guess The Subreddit
     </div>
+
     <div class="w3-center w3-panel">
-
-        <div class="w3-margin inline">
-            <div class="inline w3-margin">
-                Posts:
-            </div>
-            <div class="inline w3-margin" id="postCount"></div>
-        </div>
-
         <div class="w3-margin inline">
             <div class="inline w3-margin">
                 Points:
@@ -64,26 +93,25 @@
             <div class="inline w3-margin" id="points"></div>
         </div>
 
+
         <div class="w3-margin inline">
             <div class="inline w3-margin">
-                Lifes:
+                Streak:
             </div>
-            <div class="inline w3-margin" id="lifes"></div>
-        </div>
-        <div class="w3-margin inline">
-            <div class="inline w3-margin">
-                Skips:
-            </div>
-            <div class="inline w3-margin" id="skips"></div>
+            <div class="inline w3-margin" id="streak"></div>
         </div>
     </div>
+
+    <div class="w3-center w3-panel">
+		<div class="inline w3-margin" id="lifes"><div class="inline pad"><div class="heart-shape"></div></div><div class="inline pad"><div class="heart-shape"></div></div><div class="inline pad"><div class="heart-shape"></div></div></div>
+	</div>
+
 
     <div class="w3-margin w3-container w3-center w3-xxlarge"id="title"></div>
     <div class="w3-margin w3-center w3-container" id="placeholder"></div>
     <div class="w3-margin w3-container w3-center" id="description">Loading posts...</div>
     <div class="w3-margin w3-center w3-container" id="link"></div>
     <div class="w3-container w3-center w3-padding-large">
-
         <div class="inline">
             r/
         </div>
@@ -96,9 +124,6 @@
         </div>
         <div class="inline">
             <button id="show" class="w3-btn w3-black" onclick="enter()">Check</button> 
-        </div>
-        <div class="inline">
-            <button id="button_skip"class="w3-btn w3-black" onclick="skip()">Skip</button> 
         </div>
     </div>
     <div class="w3-container w3-center">
